@@ -100,7 +100,7 @@ class SeqLearn():
                 train_cer = mistake_num / y_label_len
                 self.summary.value.add(tag='train_cer', simple_value=train_cer)
                 print('epoch {}/{}, train_cost={:.3f}, train_ler={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_cer, time.time()-start))
-                with open('train_ler.log', 'a') as f:
+                with open('train_cer.log', 'a') as f:
                     f.write(str(train_cer))
                     f.write(' ')
 
@@ -119,7 +119,7 @@ class SeqLearn():
                     test_cer = mistake_num_t / y_label_len_t
                     self.summary.value.add(tag='test_cer', simple_value=test_cer)
                     print('###TEST### label error rate {:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
-                    with open('test_ler.log', 'a') as f:
+                    with open('test_cer.log', 'a') as f:
                         f.write(str(test_cer))
                         f.write(' ')
 
