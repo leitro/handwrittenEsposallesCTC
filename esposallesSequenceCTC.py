@@ -18,11 +18,9 @@ class SeqLearn():
         self.n_hidden = 32
         self.n_layers = 1
         self.learning_rate = 1e-3
-        self.n_epochs = 400
+        self.n_epochs = 100
         self.n_batches_per_epoch = int(self.n_examples/self.batch_size)
         self.n_batches_per_epoch_t = int(self.n_examples_t/self.batch_size)
-        # self.train_summary_writer = tf.summary.FileWriter('train_summary_log') ###
-        # self.test_summary_writer = tf.summary.FileWriter('test_summary_log') ###
         self.summary = tf.Summary()
         self.summary_writer = tf.summary.FileWriter('ler_epoch_tensorboard')
         self.model()
@@ -77,7 +75,7 @@ class SeqLearn():
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
         self.decoded, log_prob = tf.nn.ctc_greedy_decoder(self.pred, self.seqLen)
         self.decoded_long, log_prob = tf.nn.ctc_greedy_decoder(self.pred, self.seqLen, merge_repeated=False)
-        self.label_error_rate = tf.reduce_mean(tf.edit_distance(tf.cast(self.decoded[0], tf.int32), self.y))
+        self.mistake_num = tf.edit_distance(tf.cast(self.decoded[0], tf.int32), self.y, normalize=False)
         #self.error_rate_summary = tf.summary.scalar('error rate', self.label_error_rate) ###
         #self.merged_summary = tf.summary.merge([self.loss_summary, self.error_rate_summary]) ###
 
@@ -85,52 +83,51 @@ class SeqLearn():
         with tf.Session() as sess:
             tf.global_variables_initializer().run()
             for epoch in range(self.n_epochs+1):
-                train_cost = train_ler = 0
+                train_cost = mistake_num = y_label_len = 0
                 start = time.time()
                 for batch in range(self.n_batches_per_epoch):
                     batch_x = np.array(self.trainImg[batch*self.batch_size: (batch+1)*self.batch_size])
                     batch_train_seqLen = self.seqLen_train[batch*self.batch_size: (batch+1)*self.batch_size]
-                    #print(batch_x.shape)
                     batch_y = self.trainLabel[batch*self.batch_size: (batch+1)*self.batch_size]
+                    label_len = sum([len(i) for i in batch_y])
                     batch_y = self.sparse_tuple_from(batch_y)
                     feed = {self.x: batch_x, self.y: batch_y, self.seqLen: batch_train_seqLen}
                     batch_cost, _, prediction = sess.run([self.cost, self.optimizer, self.pred], feed_dict=feed)
-                    #self.train_summary_writer.add_summary(training_summary, batch + epoch*self.n_batches_per_epoch) ###
                     train_cost += batch_cost * self.batch_size
-                    train_ler += sess.run(self.label_error_rate, feed_dict=feed) * self.batch_size
+                    mistake_num += sess.run(self.mistake_num, feed_dict=feed).sum()
+                    y_label_len += label_len
                 train_cost /= self.n_examples
-                train_ler /= self.n_examples
-                self.summary.value.add(tag='train_ler', simple_value=train_ler)
-                print('epoch {}/{}, train_cost={:.3f}, train_ler={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_ler, time.time()-start))
+                train_cer = mistake_num / y_label_len
+                self.summary.value.add(tag='train_cer', simple_value=train_cer)
+                print('epoch {}/{}, train_cost={:.3f}, train_ler={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_cer, time.time()-start))
                 with open('train_ler.log', 'a') as f:
-                    f.write(str(train_ler))
+                    f.write(str(train_cer))
                     f.write(' ')
 
-                #if test_flag and epoch % 10 == 1:
                 if test_flag:
-                    ler_test = 0
+                    mistake_num_t = y_label_len_t = 0
                     start_t = time.time()
                     for bat in range(self.n_batches_per_epoch_t):
                         batch_x_t = np.array(self.validationImg[bat*self.batch_size: (bat+1)*self.batch_size])
                         batch_validation_seqLen = self.seqLen_validation[bat*self.batch_size: (bat+1)*self.batch_size]
                         batch_y_t = self.validationLabel[bat*self.batch_size: (bat+1)*self.batch_size]
+                        label_len_t = sum([len(i) for i in batch_y_t])
                         batch_y_t = self.sparse_tuple_from(batch_y_t)
                         feed_t = {self.x: batch_x_t, self.y: batch_y_t, self.seqLen: batch_validation_seqLen}
-                        ler_t = sess.run(self.label_error_rate, feed_dict=feed_t)
-                        #self.test_summary_writer.add_summary(validation_summary, bat + epoch * self.n_batches_per_epoch_t) ###
-                        ler_test += ler_t * self.batch_size
-                    ler_test /= self.n_examples_t
-                    self.summary.value.add(tag='test_ler', simple_value=ler_test)
-                    print('###TEST### label error rate {:.3f}, time={:.3f}'.format(ler_test, time.time()-start_t))
+                        mistake_num_t += sess.run(self.mistake_num, feed_dict=feed_t).sum()
+                        y_label_len_t += label_len_t
+                    test_cer = mistake_num_t / y_label_len_t
+                    self.summary.value.add(tag='test_cer', simple_value=test_cer)
+                    print('###TEST### label error rate {:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
                     with open('test_ler.log', 'a') as f:
-                        f.write(str(ler_test))
+                        f.write(str(test_cer))
                         f.write(' ')
 
                 self.summary_writer.add_summary(self.summary, epoch)
 
 
 if __name__ == '__main__':
-    #labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(64, 10, 4)
+    #labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(1280, 10, 4)
     labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(None, None, None)
     model = SeqLearn(labelNum, [trainImg, seqLen_train, trainLabel, validationImg, seqLen_validation, validationLabel, testImg, seqLen_test, testLabel])
     model.train()
