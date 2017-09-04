@@ -13,7 +13,7 @@ class SeqLearn():
         if esposallesData.TEXTLINE:
             self.batch_size = 8
         else:
-            self.batch_size = 128
+            self.batch_size = 64
         self.n_classes = n_classes
         self.n_hidden = 32
         self.n_layers = 1

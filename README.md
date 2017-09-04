@@ -35,11 +35,11 @@ In my repository there is a folder named "groundTruth", which is to make the dat
 
 During the running of the program, "train_ler.log" and "test_ler.log" will generate. When it finished, the label error rate can be visualized by **showplt.py**. Here is the demo result:
 
-![](https://user-images.githubusercontent.com/9562709/29870212-af60d3ba-8d86-11e7-8bae-f9cccc555919.png)
+![](https://user-images.githubusercontent.com/9562709/29995683-9590b2c8-8fef-11e7-95c5-64d4286b519a.png)
 
 ##### Figure 3. Label error rate for textline-based datasets
 
-![](https://user-images.githubusercontent.com/9562709/29870260-eb692164-8d86-11e7-82f8-5f3ee214df2d.png)
+![](https://user-images.githubusercontent.com/9562709/30020605-a993dff4-9164-11e7-8549-4404eebc4769.png)
 
 ##### Figure 4. Label error rate for word-based datasets
 

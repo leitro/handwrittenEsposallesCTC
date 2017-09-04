@@ -16,7 +16,7 @@ Total number of the word-based datasets:
 IMG_HEIGHT = 80
 IMG_WIDTH_TEXTLINE = 1400
 IMG_WIDTH_WORD = 460
-TEXTLINE = True # True: textline-based    False: word-based
+TEXTLINE = False # True: textline-based    False: word-based
 
 # Download the Esposalles datasets from http://rrc.cvc.uab.es/?ch=10&com=downloads
 baseDir = '/home/lkang/datasets/OfficialEsposalles/'
