@@ -60,10 +60,13 @@ class SeqLearn():
         xx = tf.reshape(xx, [-1, batch_s, self.n_features*32]) # (time/2, batch, features/2 * 32)
         # </CNN>
 
-        lstm_cell = rnn.BasicLSTMCell(self.n_hidden)
-        outputs, states = tf.nn.dynamic_rnn(lstm_cell, xx, self.seqLen, dtype=tf.float32, time_major=True)
-        outputs = tf.reshape(outputs, [-1, self.n_hidden])
-        weight2 = tf.Variable(tf.random_normal([self.n_hidden, self.n_classes+1]))
+        lstm_fw_cell = rnn.BasicLSTMCell(self.n_hidden)
+        lstm_bw_cell = rnn.BasicLSTMCell(self.n_hidden)
+        outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, xx, self.seqLen, dtype=tf.float32, time_major=True)
+        outputs = tf.concat(outputs, 2) # (time_step, batch, features*2)
+
+        outputs = tf.reshape(outputs, [-1, self.n_hidden*2])
+        weight2 = tf.Variable(tf.random_normal([self.n_hidden*2, self.n_classes+1]))
         bias2 = tf.Variable(tf.constant(0., shape=[self.n_classes+1]))
         pred = tf.matmul(outputs, weight2) + bias2
         self.pred = tf.reshape(pred, [-1, batch_s, self.n_classes+1])
@@ -99,7 +102,7 @@ class SeqLearn():
                 train_cost /= self.n_examples
                 train_cer = mistake_num / y_label_len
                 self.summary.value.add(tag='train_cer', simple_value=train_cer)
-                print('epoch {}/{}, train_cost={:.3f}, train_ler={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_cer, time.time()-start))
+                print('epoch {}/{}, train_cost={:.3f}, train_cer={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_cer, time.time()-start))
                 with open('train_cer.log', 'a') as f:
                     f.write(str(train_cer))
                     f.write(' ')
@@ -118,7 +121,7 @@ class SeqLearn():
                         y_label_len_t += label_len_t
                     test_cer = mistake_num_t / y_label_len_t
                     self.summary.value.add(tag='test_cer', simple_value=test_cer)
-                    print('###TEST### label error rate {:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
+                    print('###TEST### character error rate: {:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
                     with open('test_cer.log', 'a') as f:
                         f.write(str(test_cer))
                         f.write(' ')
