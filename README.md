@@ -35,13 +35,14 @@ In my repository there is a folder named "groundTruth", which is to make the dat
 
 During the running of the program, "train_cer.log" and "test_cer.log" will generate. When it finished, the character error rate can be visualized by **showplt.py**. For textline-based datasets, the test CER reaches 27.7% at 18th epoch. For word-based datasets, the test CER reaches 26.1% at 23rd epoch. Here is the demo result:
 
-![](https://user-images.githubusercontent.com/9562709/30151177-c13bd53e-93ae-11e7-88c7-29d5c4654de3.png)
+![](https://user-images.githubusercontent.com/9562709/30711883-6c4d2be2-9f0a-11e7-873d-c54bf4c150bb.png)
 
 ##### Figure 3. Character error rate for textline-based datasets
 
 ![](https://user-images.githubusercontent.com/9562709/30062363-2e03111a-924b-11e7-89fd-fd9f3bee9089.png)
 ##### Figure 4. Character error rate for word-based datasets
 
-## Improvement:
+## To be improved:
 
-This model has only 2 layers: one is convolutional and the other is BLSTM, so if more layers added, the result will be much better. 
++ ~~This model has only 2 layers: one is convolutional and the other is BLSTM, so if more layers added, the result will be much better.~~ 
++ Dynamic learning rate
