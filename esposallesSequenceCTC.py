@@ -15,15 +15,16 @@ class SeqLearn():
         else:
             self.batch_size = 64
         self.n_classes = n_classes
-        self.n_hidden = 32
+        self.n_hidden = 100
         self.n_layers = 1
         self.learning_rate = 1e-3
-        self.n_epochs = 100
+        self.n_epochs = 800
         self.n_batches_per_epoch = int(self.n_examples/self.batch_size)
         self.n_batches_per_epoch_t = int(self.n_examples_t/self.batch_size)
         self.summary = tf.Summary()
         self.summary_writer = tf.summary.FileWriter('ler_epoch_tensorboard')
         self.model()
+        self.saver = tf.train.Saver()
 
     def sparse_tuple_from(self, sequences, dtype=np.int32):
         # Create a sparse representention of x.
@@ -49,21 +50,35 @@ class SeqLearn():
         # <CNN>
         batch_s = tf.shape(self.x)[0]
         conv = tf.reshape(self.x, shape=[batch_s, self.n_features, -1, 1])
-        w_conv = tf.Variable(tf.random_normal([5, 5, 1, 32]))
+        w_conv = tf.Variable(tf.random_normal([3, 3, 1, 32])) # 3,3 better
         b_conv = tf.Variable(tf.constant(0., shape=[32]))
         conv = tf.nn.conv2d(conv, w_conv, strides=[1, 1, 1, 1], padding='SAME')
         conv = tf.nn.bias_add(conv, b_conv)
         conv = tf.nn.relu(conv)
-        # conv = tf.nn.max_pool(conv, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-        # shapeConv = tf.shape(conv) # (batch_size, features/2, time_step/2, channels==32)
-        xx = tf.transpose(conv, (2, 0, 1, 3)) # (time/2, batch, features/2, channels==32)
-        xx = tf.reshape(xx, [-1, batch_s, self.n_features*32]) # (time/2, batch, features/2 * 32)
+        conv = tf.nn.max_pool(conv, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME') # (batch_s, n_features/2, time_s/2, 32)
+
+        w_conv2 = tf.Variable(tf.random_normal([3, 3, 32, 64])) # 3,3 better
+        b_conv2 = tf.Variable(tf.constant(0., shape=[64]))
+        conv2 = tf.nn.conv2d(conv, w_conv2, strides=[1, 1, 1, 1], padding='SAME')
+        conv2 = tf.nn.bias_add(conv2, b_conv2)
+        conv2 = tf.nn.relu(conv2)
+        conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME') # (batch_s, n_features/4, time_s/4, 64)
+
+        w_conv3 = tf.Variable(tf.random_normal([3, 3, 64, 128])) # 3,3 better
+        b_conv3 = tf.Variable(tf.constant(0., shape=[128]))
+        conv3 = tf.nn.conv2d(conv2, w_conv3, strides=[1, 1, 1, 1], padding='SAME')
+        conv3 = tf.nn.bias_add(conv3, b_conv3)
+        conv3 = tf.nn.relu(conv3)
+        #conv3 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME') # (batch_s, n_features/8, time_s/8, 128)
+
+        xx = tf.transpose(conv3, (2, 0, 1, 3)) # (time/4, batch, features/4, channels==128)
+        xx = tf.reshape(xx, [-1, batch_s, int(self.n_features*128/4)]) # (time/4, batch, features/4 * 128)
         # </CNN>
 
         lstm_fw_cell = rnn.BasicLSTMCell(self.n_hidden)
         lstm_bw_cell = rnn.BasicLSTMCell(self.n_hidden)
         outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, xx, self.seqLen, dtype=tf.float32, time_major=True)
-        outputs = tf.concat(outputs, 2) # (time_step, batch, features*2)
+        outputs = tf.concat(outputs, 2) # (time_step_new, batch, features_new*2)
 
         outputs = tf.reshape(outputs, [-1, self.n_hidden*2])
         weight2 = tf.Variable(tf.random_normal([self.n_hidden*2, self.n_classes+1]))
@@ -85,6 +100,11 @@ class SeqLearn():
     def train(self, test_flag=True):
         with tf.Session() as sess:
             tf.global_variables_initializer().run()
+            self.saver.restore(sess, 'models/model_textline.ckpt-763')
+            #states = tf.train.get_checkpoint_state('models/')
+            #checkpoint_paths = states.all_model_checkpoint_paths
+            #self.saver.recover_last_checkpoints(checkpoint_paths)
+            print('@@@@Model restored@@@@')
             for epoch in range(self.n_epochs+1):
                 train_cost = mistake_num = y_label_len = 0
                 start = time.time()
@@ -103,6 +123,12 @@ class SeqLearn():
                 train_cer = mistake_num / y_label_len
                 self.summary.value.add(tag='train_cer', simple_value=train_cer)
                 print('epoch {}/{}, train_cost={:.3f}, train_cer={:.3f}, time={:.3f}'.format(epoch, self.n_epochs, train_cost, train_cer, time.time()-start))
+                if esposallesData.TEXTLINE:
+                    save_path = self.saver.save(sess, 'models/model_textline.ckpt', global_step=epoch)
+                else:
+                    save_path = self.saver.save(sess, 'models/model_word.ckpt', global_step=epoch)
+                print('Model saved in file:', save_path)
+
                 with open('train_cer.log', 'a') as f:
                     f.write(str(train_cer))
                     f.write(' ')
@@ -121,16 +147,22 @@ class SeqLearn():
                         y_label_len_t += label_len_t
                     test_cer = mistake_num_t / y_label_len_t
                     self.summary.value.add(tag='test_cer', simple_value=test_cer)
-                    print('###TEST### character error rate: {:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
+                    print('###TEST### test_cer={:.3f}, time={:.3f}'.format(test_cer, time.time()-start_t))
                     with open('test_cer.log', 'a') as f:
                         f.write(str(test_cer))
                         f.write(' ')
 
                 self.summary_writer.add_summary(self.summary, epoch)
 
+def proper_seq_len(seqLen, timeRatio):
+    return [int(l/timeRatio) for l in seqLen]
+
 
 if __name__ == '__main__':
     #labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(1280, 10, 4)
     labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(None, None, None)
+    seqLen_train = proper_seq_len(seqLen_train, 4)
+    seqLen_validation = proper_seq_len(seqLen_validation, 4)
+    seqLen_test = proper_seq_len(seqLen_test, 4)
     model = SeqLearn(labelNum, [trainImg, seqLen_train, trainLabel, validationImg, seqLen_validation, validationLabel, testImg, seqLen_test, testLabel])
     model.train()

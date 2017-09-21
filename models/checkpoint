@@ -1,0 +1,6 @@
+model_checkpoint_path: "model_textline.ckpt-36"
+all_model_checkpoint_paths: "model_textline.ckpt-32"
+all_model_checkpoint_paths: "model_textline.ckpt-33"
+all_model_checkpoint_paths: "model_textline.ckpt-34"
+all_model_checkpoint_paths: "model_textline.ckpt-35"
+all_model_checkpoint_paths: "model_textline.ckpt-36"
