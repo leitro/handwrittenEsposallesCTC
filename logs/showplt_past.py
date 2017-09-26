@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import sys
 
 if len(sys.argv) != 3:
-    print('Usage: python3 showplt_past.py <train_log> <test_log>')
+    print('USAGE: python3 showplt_past.py <train_log> <test_log>')
     exit()
 train = open(sys.argv[1], 'r')
 test = open(sys.argv[2], 'r')
