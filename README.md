@@ -33,7 +33,7 @@ In my repository there is a folder named "groundTruth", which is to make the dat
 
 ## Result:
 
-During the running of the program, "train_cer.log" and "test_cer.log" will generate. When it finished, the character error rate can be visualized by **showplt.py**. For textline-based datasets, the test CER reaches 10% at around 400th epoch. For word-based datasets, the test CER reaches ~~26.1% at 23rd epoch~~ [still running]. Here is the demo result:
+During the running of the program, "train_cer.log" and "test_cer.log" will generate. When it finished, the character error rate can be visualized by **showplt.py**. For textline-based datasets (with the batch size of 8), the test CER reaches 10% at around 400th epoch. For word-based datasets (with the batch size of 64), the test CER reaches 13.5% at around 400th epoch. Here is the demo result:
 
 ![](https://user-images.githubusercontent.com/9562709/30711883-6c4d2be2-9f0a-11e7-873d-c54bf4c150bb.png)
 

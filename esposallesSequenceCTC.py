@@ -100,11 +100,8 @@ class SeqLearn():
     def train(self, test_flag=True):
         with tf.Session() as sess:
             tf.global_variables_initializer().run()
-            self.saver.restore(sess, 'models/model_textline.ckpt-763')
-            #states = tf.train.get_checkpoint_state('models/')
-            #checkpoint_paths = states.all_model_checkpoint_paths
-            #self.saver.recover_last_checkpoints(checkpoint_paths)
-            print('@@@@Model restored@@@@')
+            #self.saver.restore(sess, 'models/model_textline.ckpt-763')
+            #print('@@@@Model restored@@@@')
             for epoch in range(self.n_epochs+1):
                 train_cost = mistake_num = y_label_len = 0
                 start = time.time()
