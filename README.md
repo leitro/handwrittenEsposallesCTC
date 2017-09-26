@@ -39,7 +39,7 @@ During the running of the program, "train_cer.log" and "test_cer.log" will gener
 
 ##### Figure 3. Character error rate for textline-based datasets
 
-![](https://user-images.githubusercontent.com/9562709/30062363-2e03111a-924b-11e7-89fd-fd9f3bee9089.png)
+![](https://user-images.githubusercontent.com/9562709/30866931-dfc60fde-a2da-11e7-8c53-6df72f0dd944.png)
 ##### Figure 4. Character error rate for word-based datasets
 
 ## To be improved:

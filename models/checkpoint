@@ -1,6 +1,0 @@
-model_checkpoint_path: "model_word.ckpt-800"
-all_model_checkpoint_paths: "model_word.ckpt-796"
-all_model_checkpoint_paths: "model_word.ckpt-797"
-all_model_checkpoint_paths: "model_word.ckpt-798"
-all_model_checkpoint_paths: "model_word.ckpt-799"
-all_model_checkpoint_paths: "model_word.ckpt-800"
