@@ -156,7 +156,7 @@ def proper_seq_len(seqLen, timeRatio):
 
 
 if __name__ == '__main__':
-    #labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(1280, 10, 4)
+    # labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(1280, 10, 4)
     labelNum, (trainImg, seqLen_train, trainLabel), (validationImg, seqLen_validation, validationLabel), (testImg, seqLen_test, testLabel) = esposallesData.getData(None, None, None)
     seqLen_train = proper_seq_len(seqLen_train, 4)
     seqLen_validation = proper_seq_len(seqLen_validation, 4)
